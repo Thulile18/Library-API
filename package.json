@@ -6,15 +6,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Thulile18/Library-API.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Thulile18/Library-API/issues"
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.1",
+    "body-parser": "^2.3.0",
+    "express": "^5.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
   },
-  "homepage": "https://github.com/Thulile18/Library-API#readme"
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
