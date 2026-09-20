@@ -138,6 +138,6 @@ Every error uses the same JSON shape:
 
 ## Testing with Postman
 
-1. Import `postman/Library-API.postman_collection.json`.
+1. Import Library-API.postman_collection.json.
 2. Make sure the `baseUrl` collection variable is `http://localhost:3000`.
 3. Run the requests in order: create an author first, then books (the sample requests use ID 1).
