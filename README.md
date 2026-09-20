@@ -128,6 +128,7 @@ Every error uses the same JSON shape:
 | 404 | Author or book not found, unknown route |
 | 409 | Duplicate book (same title by the same author, ignoring case); deleting an author who still has books |
 | 500 | Unexpected server error |
+| 413 | Request body is too large.
 
 ## Middleware
 
