@@ -1,95 +1,93 @@
 # Library API
 
-A RESTful API for a community library, built with **TypeScript + Express**. It manages **Authors** and **Books** (each book belongs to an author). Data is stored in memory, so it resets when the server restarts.
+A RESTful API for a community library, built with **TypeScript and Express**. It manages **authors** and **books** (each book belongs to an author). Data is kept in memory, so it is lost when the server restarts.
 
-## Getting started
+## Run it
 
-```bash
+```
 npm install
-npx tsc --outDir dist --rootDir src
-node dist/server.js
+npm run dev
 ```
 
-The server runs at `http://localhost:3000`.
+The server starts on `http://localhost:3000`. To use another port, set the `PORT` environment variable.
 
-Run the last two commands again after every code change.
+`npm run dev` restarts the server automatically whenever you save a file. Stop it with `Ctrl+C`.
 
 ## Project structure
 
 ```
 src/
-  server.ts               Entry point: configures Express and mounts routes
+  server.ts               Starts Express and connects everything
   types.ts                Author and Book interfaces
-  errors.ts               HttpError class (400 / 404 / 409)
-  routes/                 Maps method + URL to a controller
-    authorRoutes.ts
-    bookRoutes.ts
-  controllers/            Handles request/response, chooses status codes
-    authorController.ts
-    bookController.ts
-  services/               Business rules (author must exist, no duplicates)
-    authorService.ts
-    bookService.ts
-  models/                 In-memory storage (the arrays)
-    authorModel.ts
-    bookModel.ts
+  errors.ts               HttpError (an error with a status code)
+  routes/                 Connects each URL to a controller function
+  controllers/            Reads the request and sends the response
+  services/               Business rules
+  models/                 The in-memory arrays
   middleware/
-    logger.ts             Logs method & URL
-    validate.ts           Payload validation for POST and PUT
-    errorHandler.ts       404 handler + centralized error handler
-  utils/query.ts          Query-string helpers (sort, paginate, search)
+    logger.ts             Logs the method and URL of every request
+    validate.ts           Checks the body of POST and PUT requests
+    errorHandler.ts       404 handler and central error handler
+  utils/query.ts          Helpers for sorting, pagination and reading values
 ```
 
-Request flow: `express.json()` -> logger -> route -> validation (POST/PUT) -> controller -> service -> model -> response.
+A request travels like this:
+`express.json()` -> logger -> route -> validation (POST/PUT) -> controller -> service -> model -> response
 
-## Data models
+## Data
 
-**Author**: `id` (auto), `name` (required, max 100 chars), `bio` (optional), `birthYear` (optional integer)
+**Author:** `id` (automatic), `name` (required), `birthYear` (optional whole number)
 
-**Book**: `id` (auto), `title` (required, max 200 chars), `authorId` (required, must exist), `year` (required integer), `isbn` (optional)
+**Book:** `id` (automatic), `title` (required), `authorId` (required, must be an existing author), `year` (required whole number)
 
 ## Endpoints
 
 ### Authors
 
-| Method | Endpoint | Description | Success |
+| Method | URL | What it does | Success |
 |---|---|---|---|
 | POST | `/authors` | Create an author | 201 |
-| GET | `/authors` | List authors (`name`, `sort`, `page`, `limit`) | 200 |
-| GET | `/authors/:id` | Get an author by ID | 200 |
-| PUT | `/authors/:id` | Update an author (full replacement) | 200 |
-| DELETE | `/authors/:id` | Delete an author. Returns **409** if the author still has books; add `?cascade=true` to delete their books too | 200 |
-| GET | `/authors/:id/books` | List an author's books (supports the same query params as `/books`) | 200 |
+| GET | `/authors` | List authors | 200 |
+| GET | `/authors/:id` | Get one author | 200 |
+| PUT | `/authors/:id` | Update an author | 200 |
+| DELETE | `/authors/:id` | Delete an author | 200 |
+| GET | `/authors/:id/books` | List the books of one author | 200 |
+
+An author who still has books cannot be deleted (409). Use `DELETE /authors/:id?cascade=true` to delete the author and their books.
 
 ### Books
 
-| Method | Endpoint | Description | Success |
+| Method | URL | What it does | Success |
 |---|---|---|---|
 | POST | `/books` | Create a book | 201 |
-| GET | `/books` | List / search books | 200 |
-| GET | `/books/:id` | Get a book by ID | 200 |
-| PUT | `/books/:id` | Update a book (full replacement) | 200 |
+| GET | `/books` | List and search books | 200 |
+| GET | `/books/:id` | Get one book | 200 |
+| PUT | `/books/:id` | Update a book | 200 |
 | DELETE | `/books/:id` | Delete a book | 200 |
 
-### Query parameters (`GET /books` and `GET /authors/:id/books`)
+### Query parameters
 
-| Param | Meaning |
-|---|---|
-| `title` | Partial, case-insensitive title match |
-| `author` | Partial, case-insensitive author name match |
-| `authorId` | Exact author ID |
-| `year` | Exact publication year |
-| `yearFrom`, `yearTo` | Inclusive year range |
-| `search` | Matches title, author name, or ISBN |
-| `sort` | `id`, `title`, `year`, `authorId`. Prefix with `-` for descending (e.g. `-year`) |
-| `page`, `limit` | Pagination (default `page=1`, `limit=10`, max 100) |
-
-`GET /authors` supports `name`, `sort` (`id`, `name`, `birthYear`), `page` and `limit`.
+| URL | Parameter | Meaning |
+|---|---|---|
+| `/books` and `/authors/:id/books` | `title` | Title contains this text |
+| | `author` | Author name contains this text |
+| | `year` | Exact year |
+| | `sort` | `id`, `title` or `year` (add `-` for descending, e.g. `-year`) |
+| | `page`, `limit` | Pagination (default page 1, limit 10, maximum 100) |
+| `/authors` | `name` | Name contains this text |
+| | `sort` | `id`, `name` or `birthYear` |
+| | `page`, `limit` | Pagination |
 
 List responses look like this:
 
 ```json
-{ "data": [], "meta": { "total": 3, "page": 1, "limit": 10, "totalPages": 1 } }
+{
+  "page": 1,
+  "limit": 10,
+  "total": 1,
+  "totalPages": 1,
+  "data": [{ "id": 1, "title": "Things Fall Apart", "authorId": 1, "year": 1958 }]
+}
 ```
 
 ## Examples
@@ -108,37 +106,39 @@ POST /books
 { "title": "Things Fall Apart", "authorId": 1, "year": 1958 }
 ```
 
-Search books by author name, newest first:
+Search books by an author's name, newest first:
 
 ```
 GET /books?author=achebe&sort=-year
 ```
 
-## Error handling
+## Errors
 
-Every error uses the same JSON shape:
+Every error is JSON in the same shape:
 
 ```json
-{ "error": { "status": 400, "message": "Validation failed", "details": ["authorId is required"] } }
+{ "error": "Book not found" }
 ```
 
 | Status | When |
 |---|---|
-| 400 | Missing or invalid fields, malformed JSON, non-numeric ID, `authorId` doesn't reference an existing author, bad query parameters |
-| 404 | Author or book not found, unknown route |
-| 409 | Duplicate book (same title by the same author, ignoring case); deleting an author who still has books |
+| 400 | Missing or invalid fields, invalid JSON, bad id, `authorId` does not exist, bad query value |
+| 404 | Author, book or route not found |
+| 409 | Duplicate book (same title by the same author), or deleting an author who still has books |
+| 413 | Request body too large |
 | 500 | Unexpected server error |
-| 413 | Request body is too large.
 
 ## Middleware
 
-- **express.json()**: parses JSON request bodies into `req.body`.
-- **Logger**: prints `[timestamp] METHOD /url` for every request.
-- **Validation**: `validateAuthor` and `validateBook` run on both POST and PUT and strip unknown fields.
-- **Error handler**: one place that turns thrown errors into JSON responses.
+- **express.json()** turns the JSON body into `req.body`.
+- **Logger** prints the method and URL of every request.
+- **Validation** checks the body of POST and PUT requests.
+- **Error handler** turns every error into a JSON response.
 
 ## Testing with Postman
 
-1. Import Library-API.postman_collection.json.
-2. Make sure the `baseUrl` collection variable is `http://localhost:3000`.
-3. Run the requests in order: create an author first, then books (the sample requests use ID 1).
+
+1. Start the server with `npm run dev`..
+2. Create an author first (`POST /authors`), then a book (`POST /books`) using that author's id..
+3. Try the search, sort and pagination examples above..
+4. Try the error cases: a missing field (400), an unknown id (404) and a duplicate book (409)..
