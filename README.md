@@ -2,6 +2,10 @@
 
 A RESTful API for a community library, built with **TypeScript and Express**. It manages **authors** and **books** (each book belongs to an author). Data is kept in memory, so it is lost when the server restarts.
 
+Socialify Image
+
+<img src="https://socialify.git.ci/Thulile18/Library-API/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Library-API" width="640" height="320" />
+
 ## Run it
 
 ```
